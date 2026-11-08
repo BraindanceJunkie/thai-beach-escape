@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escape from Ko San Beach | Interactive Browser Quest</title>
+  <style>
+    :root {
+      --sand-gold: #e5b972;
+      --deep-ocean: #0f1c24;
+      --card-bg: rgba(19, 34, 44, 0.92);
+      --emerald-glow: #10b981;
+      --accent-coral: #ff6b6b;
+      --text-main: #f0f4f8;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #091217 0%, var(--deep-ocean) 50%, #152733 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      border: 1px solid rgba(229, 185, 114, 0.25);
+      border-radius: 16px;
+      max-width: 680px;
+      width: 100%;
+      padding: 36px 32px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+    }
+
+    .header-tag {
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sand-gold);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 14px;
+      margin-bottom: 24px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .status-item span {
+      color: var(--sand-gold);
+      font-weight: 600;
+    }
+
+    .scene-text {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 24px;
+      color: #e2e8f0;
+    }
+
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    button.choice-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 0.96rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      line-height: 1.4;
+    }
+
+    button.choice-btn:hover {
+      background: rgba(229, 185, 114, 0.12);
+      border-color: var(--sand-gold);
+      transform: translateY(-2px);
+    }
+
+    .restart-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: var(--sand-gold);
+      color: var(--deep-ocean);
+      border: none;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header-tag">Gulf of Thailand &bull; Isolated Cove</div>
+  <h1>Escape Ko San Beach</h1>
+  <div class="status-bar">
+    <div class="status-item">Monsoon arrival: <span id="time-left">18:00 hrs</span></div>
+    <div class="status-item">Condition: <span id="status-cond">Stranded</span></div>
+  </div>
+
+  <div id="story" class="scene-text">
+    The sun is sinking rapidly beneath the Andaman rim. The last tourist ferry disappeared hours ago, and storm warnings are echoing across the radio frequencies. You stand on the empty white sand with a dying smartphone, a damp pouch of Baht, and a limestone bluff blocking the path inland.
+  </div>
+
+  <div id="choices" class="choices"></div>
+</div>
+
+<script>
+  const storyData = {
+    start: {
+      text: "The sun is sinking rapidly beneath the Andaman rim. The last tourist ferry disappeared hours ago, and storm warnings are echoing across the frequencies. You stand on the empty white sand with a damp pouch of Thai Baht, a dying flashlight, and an overgrown jungle cliff behind you.",
+      status: "Stranded on shore",
+      time: "18:00 hrs",
+      choices: [
+        { text: "Walk toward the creaking wooden pier at the north end of the beach.", next: "pier" },
+        { text: "Search the abandoned beach bar shacks for anything useful.", next: "bar" },
+        { text: "Follow the faint trail heading up the jungle ridge.", next: "jungle" }
+      ]
+    },
+    pier: {
+      text: "At the end of the rickety pier, a lone longtail boat bobs gently against old rubber tires. An old boatman is securing the tarp over an automotive engine mounted on a steel pivot pole. He glances up as your footsteps creak on the planks.",
+      status: "Talking to boatman",
+      time: "18:20 hrs",
+      choices: [
+        { text: "Offer 1,000 Baht to motor across the strait to the mainland pier before the squall hits.", next: "escape_boat" },
+        { text: "Ask if there is a coastal highway on the other side of the bluff.", next: "bluff_advice" }
+      ]
+    },
+    bar: {
+      text: "Inside the palm-thatch shelter, you uncover a dry waterproof drybag, half a bottle of clean drinking water, and an emergency channel radio charger.",
+      status: "Found supplies",
+      time: "18:30 hrs",
+      choices: [
+        { text: "Take the gear and hurry to the wooden pier.", next: "pier" },
+        { text: "Plug in the emergency radio to check mainland weather reports.", next: "radio_alert" }
+      ]
+    },
+    jungle: {
+      text: "The trail grows steep and slick with humidity. Roots crisscross the muddy incline. In the twilight, you reach a split: a rocky viewpoint overlooking the sea, or a descent toward a dirt service road.",
+      status: "Limestone ridge",
+      time: "18:45 hrs",
+      choices: [
+        { text: "Follow the dirt path downhill toward the road.", next: "escape_road" },
+        { text: "Climb the rocky ridge to signal with your light.", next: "ridge_stranded" }
+      ]
+    },
+    bluff_advice: {
+      text: "The boatman shakes his head: 'Road on the other side washed out last week. Waves are rising. Either you board now for Krabi port or find high ground.'",
+      status: "Urgent decision",
+      time: "18:35 hrs",
+      choices: [
+        { text: "Step aboard the longtail boat and hand over the fare.", next: "escape_boat" }
+      ]
+    },
+    radio_alert: {
+      text: "The radio crackles to life: 'Heavy squalls approaching coastal waters. All small craft grounding at 19:00.' You have minutes before the water becomes impassable.",
+      status: "Squall warning",
+      time: "18:40 hrs",
+      choices: [
+        { text: "Sprint down to the pier right now.", next: "pier" }
+      ]
+    },
+    escape_boat: {
+      text: "🎉 **Escape Successful!** The customized diesel engine roars to life. Spray hits your face as the longtail cuts through the darkening swell, navigating past the reef markers toward the lights of the mainland harbor just as the first drops of rain fall.",
+      status: "En route to mainland",
+      time: "Safe",
+      choices: []
+    },
+    escape_road: {
+      text: "🎉 **Escape Successful!** You emerge onto a paved municipal road behind the bay. A local songthaew pickup truck stops and the driver waves you into the covered cab bed bound for town.",
+      status: "Aboard transport",
+      time: "Safe",
+      choices: []
+    },
+    ridge_stranded: {
+      text: "⚠️ **Trapped by the storm:** The wind picks up viciously on the bare rocks. Rain blinds your view and the pier lights down below vanish into the darkness. You have to shelter in a cave until dawn.",
+      status: "Taking shelter",
+      time: "Grounded",
+      choices: []
+    }
+  };
+
+  function renderScene(key) {
+    const scene = storyData[key];
+    document.getElementById("story").innerHTML = scene.text;
+    document.getElementById("status-cond").innerText = scene.status;
+    document.getElementById("time-left").innerText = scene.time;
+
+    const choicesContainer = document.getElementById("choices");
+    choicesContainer.innerHTML = "";
+
+    if (scene.choices.length === 0) {
+      const resetBtn = document.createElement("button");
+      resetBtn.className = "restart-btn";
+      resetBtn.innerText = "Play Again";
+      resetBtn.onclick = () => renderScene("start");
+      choicesContainer.appendChild(resetBtn);
+      return;
+    }
+
+    scene.choices.forEach(choice => {
+      const btn = document.createElement("button");
+      btn.className = "choice-btn";
+      btn.innerText = choice.text;
+      btn.onclick = () => renderScene(choice.next);
+      choicesContainer.appendChild(btn);
+    });
+  }
+
+  // Initialize
+  renderScene("start");
+</script>
+
+</body>
+</html>
